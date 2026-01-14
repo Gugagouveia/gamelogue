@@ -21,9 +21,18 @@ export class AuthService {
         return { success: false, error: 'Senha deve ter no mínimo 6 caracteres' }
       }
 
+      if (!input.username || input.username.trim().length < 3) {
+        return { success: false, error: 'Username deve ter no mínimo 3 caracteres' }
+      }
+
       const existingUser = await this.repository.findByEmail(input.email)
       if (existingUser) {
         return { success: false, error: 'Email já está em uso' }
+      }
+
+      const existingUsername = await this.repository.findByUsername(input.username)
+      if (existingUsername) {
+        return { success: false, error: 'Username já está em uso' }
       }
 
       const user = await this.repository.create(input)

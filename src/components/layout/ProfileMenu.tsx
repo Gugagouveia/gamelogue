@@ -56,7 +56,7 @@ export default function ProfileMenu({ username, userId }: ProfileMenuProps) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64 rounded-2xl shadow-2xl border border-border/50 bg-background backdrop-blur-sm p-0">
-          {/* Header Section */}
+        
           <div className="px-4 py-4 border-b border-border/30">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12 border-2 border-primary/20">
@@ -70,8 +70,7 @@ export default function ProfileMenu({ username, userId }: ProfileMenuProps) {
               </div>
             </div>
           </div>
-
-          {/* Menu Items Section */}
+     
           <div className="px-2 py-3 space-y-1">
             <DropdownMenuItem 
               onClick={handleUserPageClick} 
@@ -89,7 +88,6 @@ export default function ProfileMenu({ username, userId }: ProfileMenuProps) {
             </DropdownMenuItem>
           </div>
 
-          {/* Logout Section */}
           <div className="px-2 py-3 border-t border-border/30">
             <DropdownMenuItem
               onClick={handleLogout}

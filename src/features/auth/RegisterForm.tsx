@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { UserPlus, Eye, EyeOff } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
+import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
+import { UserPlus, Eye, EyeOff, Sparkles, Mail, Lock as LockIcon, User, Check, X } from 'lucide-react'
 
 export default function RegisterForm() {
   const [email, setEmail] = useState('')
@@ -17,13 +20,32 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+
+  const getPasswordStrength = () => {
+    let strength = 0
+    if (password.length >= 6) strength += 25
+    if (password.length >= 8) strength += 25
+    if (/[A-Z]/.test(password)) strength += 25
+    if (/[0-9]/.test(password)) strength += 25
+    return strength
+  }
+
+  const passwordStrength = getPasswordStrength()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setFieldErrors({ username: '', email: '', password: '', confirmPassword: '' })
 
+    // Validar senhas coincidem
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem')
+      setFieldErrors(prev => ({ ...prev, password: 'As senhas não coincidem', confirmPassword: 'As senhas não coincidem' }))
       return
     }
 
@@ -37,7 +59,16 @@ export default function RegisterForm() {
           (result as { success: boolean; redirectTo?: string }).redirectTo || '/user/default'
         window.location.href = redirectUrl
       } else {
-        setError(result.error || 'Erro ao criar conta')
+        // Identificar qual campo causou o erro
+        const errorMsg = result.error || 'Erro ao criar conta'
+        
+        if (errorMsg.includes('Username já está em uso')) {
+          setFieldErrors(prev => ({ ...prev, username: errorMsg }))
+        } else if (errorMsg.includes('Email já está em uso')) {
+          setFieldErrors(prev => ({ ...prev, email: errorMsg }))
+        } else {
+          setError(errorMsg)
+        }
       }
     } catch {
       setError('Erro ao criar conta')
@@ -46,97 +77,196 @@ export default function RegisterForm() {
     }
   }
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value)
+    setFieldErrors(prev => ({ ...prev, username: '' }))
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    setFieldErrors(prev => ({ ...prev, email: '' }))
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value)
+    setFieldErrors(prev => ({ ...prev, password: '', confirmPassword: '' }))
+  }
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value)
+    setFieldErrors(prev => ({ ...prev, confirmPassword: '' }))
+  }
+
   return (
-    <Card className="w-full max-w-md mx-auto border-none shadow-2xl">
-      <CardHeader className="space-y-1">
+    <Card className="w-full max-w-md mx-auto border-none shadow-2xl backdrop-blur-sm bg-card/95">
+      <CardHeader className="space-y-3 pb-4">
+        <div className="flex items-center justify-center gap-2">
+          <div className="p-2 rounded-full bg-primary/10">
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+        </div>
         <CardTitle className="text-2xl font-bold text-center">Criar conta</CardTitle>
         <CardDescription className="text-center">
           Preencha os dados abaixo para criar sua conta
         </CardDescription>
       </CardHeader>
+      <Separator className="mb-6" />
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive rounded-md">
-              <p className="text-sm text-destructive">{error}</p>
+            <div className="p-4 bg-destructive/10 border-l-4 border-destructive rounded-md animate-in slide-in-from-top-2">
+              <p className="text-sm text-destructive font-medium">{error}</p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="username">Nome de usuário (opcional)</Label>
+            <Label htmlFor="username" className="text-base font-semibold flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Nome de usuário
+            </Label>
             <Input
               id="username"
               type="text"
               placeholder="seunome"
               value={username}
-              onChange={e => setUsername(e.target.value)}
+              onChange={handleUsernameChange}
+              className="h-12 text-base"
+              style={fieldErrors.username ? { borderColor: '#ef4444', borderWidth: '2px' } : {}}
             />
+            {fieldErrors.username && (
+              <p className="text-xs text-destructive font-medium mt-1">{fieldErrors.username}</p>
+            )}
+            <p className="text-xs text-muted-foreground">Mínimo 3 caracteres</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="email" className="text-base font-semibold flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              E-mail *
+            </Label>
             <Input
               id="email"
               type="email"
               placeholder="seu@email.com"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              className="h-12 text-base"
+              style={fieldErrors.email ? { borderColor: '#ef4444', borderWidth: '2px' } : {}}
               required
             />
+            {fieldErrors.email && (
+              <p className="text-xs text-destructive font-medium mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Senha (mínimo 6 caracteres)</Label>
+            <Label htmlFor="password" className="text-base font-semibold flex items-center gap-2">
+              <LockIcon className="h-4 w-4" />
+              Senha *
+            </Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
+                className="pr-12 h-12 text-base"
+                style={fieldErrors.password ? { borderColor: '#ef4444', borderWidth: '2px' } : {}}
                 required
                 minLength={6}
-                className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-accent"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {fieldErrors.password && (
+              <p className="text-xs text-destructive font-medium mt-1">{fieldErrors.password}</p>
+            )}
+            {password && (
+              <div className="space-y-2 mt-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">Força da senha:</span>
+                  <Badge 
+                    variant={passwordStrength < 50 ? "destructive" : passwordStrength < 75 ? "secondary" : "default"}
+                    className="text-xs"
+                  >
+                    {passwordStrength < 50 ? 'Fraca' : passwordStrength < 75 ? 'Média' : 'Forte'}
+                  </Badge>
+                </div>
+                <Progress value={passwordStrength} className="h-2" />
+                <div className="space-y-1">
+                  <div className={`flex items-center gap-2 text-xs ${password.length >= 6 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {password.length >= 6 ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                    Mínimo 6 caracteres
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${/[A-Z]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {/[A-Z]/.test(password) ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                    Letra maiúscula
+                  </div>
+                  <div className={`flex items-center gap-2 text-xs ${/[0-9]/.test(password) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {/[0-9]/.test(password) ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                    Número
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmar senha</Label>
+            <Label htmlFor="confirmPassword" className="text-base font-semibold flex items-center gap-2">
+              <LockIcon className="h-4 w-4" />
+              Confirmar senha *
+            </Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={handleConfirmPasswordChange}
+                className="pr-12 h-12 text-base"
+                style={fieldErrors.confirmPassword ? { borderColor: '#ef4444', borderWidth: '2px' } : {}}
                 required
                 minLength={6}
-                className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-accent"
               >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {fieldErrors.confirmPassword && (
+              <p className="text-xs text-destructive font-medium mt-1">{fieldErrors.confirmPassword}</p>
+            )}
+            {confirmPassword && !fieldErrors.confirmPassword && (
+              <div className={`flex items-center gap-2 text-xs mt-2 ${password === confirmPassword ? 'text-green-600' : 'text-destructive'}`}>
+                {password === confirmPassword ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+                {password === confirmPassword ? 'Senhas coincidem' : 'Senhas não coincidem'}
+              </div>
+            )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+            disabled={loading}
+            size="lg"
+          >
             {loading ? (
-              'Criando conta...'
+              <>
+                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                Criando conta...
+              </>
             ) : (
               <>
-                <UserPlus className="mr-2 h-4 w-4" />
+                <UserPlus className="mr-2 h-5 w-5" />
                 Registrar
               </>
             )}

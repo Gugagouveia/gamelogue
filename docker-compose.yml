@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: gamelogue-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+        JWT_SECRET: ${JWT_SECRET}
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
+        CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+        CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    networks:
+      - gamelogue-network
+    volumes:
+      - ./public/uploads:/app/public/uploads
+
+networks:
+  gamelogue-network:
+    driver: bridge

@@ -145,4 +145,18 @@ export class UserRepository {
         result.updatedAt instanceof Date ? result.updatedAt.toISOString() : result.updatedAt,
     } as any
   }
+
+  async findByIds(userIds: string[]): Promise<User[]> {
+    const users = await this.getCollection()
+    const objectIds = userIds.map(id => new ObjectId(id))
+    const results = await users.find({ _id: { $in: objectIds } } as any).toArray()
+    
+    return results.map(user => ({
+      ...user,
+      _id: user._id.toString(),
+      id: user.id || '1',
+      createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : user.createdAt,
+      updatedAt: user.updatedAt instanceof Date ? user.updatedAt.toISOString() : user.updatedAt,
+    } as any))
+  }
 }

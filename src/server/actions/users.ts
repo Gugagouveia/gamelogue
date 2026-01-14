@@ -135,3 +135,28 @@ export async function updateUserProfile(updates: {
     return { success: false, error: 'Erro ao atualizar usuário' }
   }
 }
+
+export async function getUsernamesByIds(userIds: string[]) {
+  try {
+    const userRepo = new UserRepository()
+    const users = await userRepo.findByIds(userIds)
+    
+    const usernameMap: Record<string, string> = {}
+    users.forEach(user => {
+      if (user.username) {
+        usernameMap[user.id] = user.username
+      }
+    })
+    
+    return {
+      success: true,
+      usernames: usernameMap,
+    }
+  } catch (error) {
+    console.error('Erro ao buscar usernames:', error)
+    return {
+      success: false,
+      usernames: {},
+    }
+  }
+}

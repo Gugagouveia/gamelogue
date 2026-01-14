@@ -97,8 +97,15 @@ export class PostService {
     try {
       const db = await getDb('gamelogue')
       const posts = db.collection<DbPost>('Post')
+      const users = db.collection('User')
 
       if (!ObjectId.isValid(postId)) return { success: false, message: 'Post inválido' }
+
+      // Busca o username do usuário
+      const user = await users.findOne({ _id: new ObjectId(userId) })
+      const username = user?.username || 'Usuário'
+      
+      console.log('Adicionando comentário:', { userId, username, userFound: !!user })
 
       const result = await posts.updateOne(
         { _id: new ObjectId(postId) },
@@ -106,6 +113,7 @@ export class PostService {
           $push: {
             comments: {
               userId,
+              username,
               text,
               createdAt: new Date(),
             },
@@ -121,19 +129,37 @@ export class PostService {
     }
   }
 
-  async deleteComment(_commentId: string): Promise<{ success: boolean; message?: string }> {
-    void _commentId
-    // Not implemented for embedded comments in this iteration
-    return { success: false, message: 'Remoção de comentário não disponível' }
+  async deleteComment(postId: string, commentCreatedAt: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const db = await getDb('gamelogue')
+      const posts = db.collection<DbPost>('Post')
+
+      if (!ObjectId.isValid(postId)) return { success: false, message: 'Post inválido' }
+
+      const result = await posts.updateOne(
+        { _id: new ObjectId(postId) },
+        {
+          $pull: {
+            comments: {
+              createdAt: new Date(commentCreatedAt)
+            }
+          }
+        }
+      )
+
+      if (result.modifiedCount > 0) return { success: true }
+      return { success: false, message: 'Erro ao deletar comentário' }
+    } catch (error) {
+      console.error('Erro ao deletar comentário:', error)
+      return { success: false, message: 'Erro ao deletar comentário' }
+    }
   }
 
   async getPublicPosts(
-    params: PaginationParams,
-    excludeUsername?: string
+    params: PaginationParams
   ): Promise<{ posts: PostWithUser[]; pagination: PaginationResult }> {
     const { posts, total } = await this.repository.findPaginated(params, {
       publicOnly: true,
-      excludeUsername,
     })
 
     const pages = Math.ceil(total / params.limit)

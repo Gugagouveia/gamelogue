@@ -4,15 +4,22 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import type { PostWithUser } from '@/domain/entities/Post'
 import { getPublicPosts } from '@/server/actions/posts'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Loader2 } from 'lucide-react'
 import { FeedSkeletonGrid } from '@/components/ui/skeleton'
 import { PostModal } from './PostModal'
+import { PostInteractions } from './PostInteractions'
 import { toast } from 'sonner'
 
-export default function PublicFeed() {
+interface PublicFeedProps {
+  isAuthenticated?: boolean
+  currentUsername?: string
+  currentUserId?: string
+}
+
+export default function PublicFeed({ isAuthenticated = false, currentUsername, currentUserId }: PublicFeedProps) {
   const [posts, setPosts] = useState<PostWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
@@ -71,32 +78,69 @@ export default function PublicFeed() {
       <h1 className="text-xl font-bold mb-4">Posts Públicos da Comunidade</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {posts.map(post => (
-          <Card key={post._id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer" onClick={() => setSelectedPost(post)}>
+          <Card 
+            key={post._id} 
+            className="overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col cursor-pointer" 
+            onClick={() => setSelectedPost(post)}
+          >
             <div className="relative aspect-square bg-muted">
-              <Image src={post.imageUrl} alt={post.title || 'Post'} fill className="object-cover" />
+              <Image 
+                src={post.imageUrl} 
+                alt={post.title || 'Post'} 
+                fill 
+                className="object-cover" 
+              />
             </div>
-            <CardHeader className="space-y-2 p-2">
+            
+            <CardHeader className="space-y-2 p-2 flex-1 flex flex-col">
               <div className="flex items-center gap-2 min-w-0">
                 <Avatar className="h-6 w-6 flex-shrink-0">
                   <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                     {post.user?.username?.[0]?.toUpperCase() || post.userId?.[0]?.toUpperCase() || '?'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col min-w-0">
-                  <p className="font-semibold text-xs truncate">{post.user?.username || post.userId || 'Usuário'}</p>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <p className="font-semibold text-xs truncate">
+                    {post.user?.username || post.userId || 'Usuário'}
+                  </p>
+                  {post.game && (
+                    <p className="text-xs text-muted-foreground truncate">{post.game}</p>
+                  )}
                 </div>
               </div>
-              {post.title && <h3 className="text-xs font-bold line-clamp-1">{post.title}</h3>}
+
+              {post.title && (
+                <h3 className="text-xs font-bold line-clamp-1">{post.title}</h3>
+              )}
             </CardHeader>
-            <CardContent className="space-y-1 p-2 pt-0">
+            
+            <CardContent className="space-y-1 p-2 pt-0 flex-1">
+              {post.description && (
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  {post.description}
+                </p>
+              )}
+
               {post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-0.5">
                   {post.tags.slice(0, 2).map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs py-0">#{tag}</Badge>
+                    <Badge key={index} variant="secondary" className="text-xs py-0">
+                      #{tag}
+                    </Badge>
                   ))}
                 </div>
               )}
             </CardContent>
+            
+            <CardFooter className="p-2 pt-1">
+              {/* Stats */}
+              <PostInteractions
+                postId={post._id}
+                initialLikes={post.likesCount}
+                initialComments={post.commentsCount}
+                isAuthenticated={isAuthenticated}
+              />
+            </CardFooter>
           </Card>
         ))}
       </div>
@@ -107,7 +151,14 @@ export default function PublicFeed() {
         )}
       </div>
       {selectedPost && (
-        <PostModal post={selectedPost} isOpen={!!selectedPost} onClose={() => setSelectedPost(null)} isAuthenticated={false} />
+        <PostModal 
+          post={selectedPost} 
+          isOpen={!!selectedPost} 
+          onClose={() => setSelectedPost(null)} 
+          isAuthenticated={isAuthenticated}
+          isOwner={currentUsername === selectedPost.user?.username}
+          currentUserId={currentUserId}
+        />
       )}
     </div>
   )

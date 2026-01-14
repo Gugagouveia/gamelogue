@@ -11,6 +11,7 @@ export interface Post {
   likes?: string[]
   comments?: Array<{
     userId: string
+    username?: string
     text: string
     createdAt: Date
   }>

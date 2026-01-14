@@ -50,12 +50,11 @@ export async function getPosts(params?: Partial<PaginationParams>) {
 
 export async function getPublicPosts(params?: Partial<PaginationParams>) {
   try {
-    const { success: hasUser, user } = await getCurrentUser()
     const postService = new PostService()
     const page = params?.page || DEFAULT_PAGINATION.PAGE
     const limit = params?.limit || DEFAULT_PAGINATION.LIMIT
 
-    const result = await postService.getPublicPosts({ page, limit }, hasUser ? user?.username : undefined)
+    const result = await postService.getPublicPosts({ page, limit })
 
     return { success: true, ...result }
   } catch (error) {
@@ -120,7 +119,7 @@ export async function addComment(postId: string, text: string) {
   try {
     const { success: hasUser, user } = await getCurrentUser()
 
-    if (!hasUser || !user?.id) {
+    if (!hasUser || !user?._id) {
       return {
         success: false,
         message: 'Usuário não autenticado',
@@ -128,7 +127,7 @@ export async function addComment(postId: string, text: string) {
     }
 
     const postService = new PostService()
-    const result = await postService.addComment(postId, user.id, text)
+    const result = await postService.addComment(postId, user._id, text)
 
     if (result.success) {
       revalidatePath('/')
@@ -144,7 +143,7 @@ export async function addComment(postId: string, text: string) {
   }
 }
 
-export async function deleteComment(commentId: string) {
+export async function deleteComment(postId: string, commentCreatedAt: string) {
   try {
     const { success: hasUser } = await getCurrentUser()
 
@@ -156,7 +155,7 @@ export async function deleteComment(commentId: string) {
     }
 
     const postService = new PostService()
-    const result = await postService.deleteComment(commentId)
+    const result = await postService.deleteComment(postId, commentCreatedAt)
 
     if (result.success) {
       revalidatePath('/')

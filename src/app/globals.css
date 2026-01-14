@@ -56,3 +56,36 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* Estilos para tabs com melhor visibilidade apenas no dark mode */
+.dark [data-state="active"][role="tab"] {
+  background-color: #7c3aed !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4) !important;
+}
+
+.dark [data-state="inactive"][role="tab"] {
+  color: #9ca3af !important;
+}
+
+.dark [data-state="inactive"][role="tab"]:hover {
+  color: #d1d5db !important;
+}
+
+/* Estilos para PostModal - fundo branco no light mode, preto no dark mode */
+.post-modal-content {
+  background-color: #ffffff !important;
+}
+
+.post-modal-content * {
+  background-color: #ffffff !important;
+}
+
+.dark .post-modal-content {
+  background-color: #000000 !important;
+}
+
+.dark .post-modal-content * {
+  background-color: #000000 !important;
+}

@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Heart, MessageCircle, Trash2, Loader2 } from 'lucide-react'
+import { Trash2, Loader2 } from 'lucide-react'
 import { FeedSkeletonGrid } from '@/components/ui/skeleton'
 import { PostInteractions } from './PostInteractions'
 import { PostModal } from './PostModal'
@@ -25,9 +25,10 @@ import { toast } from 'sonner'
 interface FeedProps {
   isAuthenticated?: boolean
   currentUsername?: string
+  currentUserId?: string
 }
 
-export default function Feed({ isAuthenticated = false, currentUsername }: FeedProps) {
+export default function Feed({ isAuthenticated = false, currentUsername, currentUserId }: FeedProps) {
   const [posts, setPosts] = useState<PostWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
@@ -267,6 +268,7 @@ export default function Feed({ isAuthenticated = false, currentUsername }: FeedP
           onClose={() => setSelectedPost(null)}
           isAuthenticated={isAuthenticated}
           isOwner={isAuthenticated && currentUsername === selectedPost.userId}
+          currentUserId={currentUserId}
         />
       )}
     </div>

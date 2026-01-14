@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LogIn, Eye, EyeOff } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
+import { LogIn, Eye, EyeOff, Sparkles, Mail, Lock as LockIcon } from 'lucide-react'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
@@ -14,10 +15,12 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [hasError, setHasError] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setHasError(false)
     setLoading(true)
 
     try {
@@ -28,71 +31,113 @@ export default function LoginForm() {
           (result as { success: boolean; redirectTo?: string }).redirectTo || '/user/default'
         window.location.href = redirectUrl
       } else {
-        setError(result.error || 'Erro ao fazer login')
+        setError(result.error || 'Email ou senha incorretos')
+        setHasError(true)
       }
     } catch {
-      setError('Erro ao fazer login')
+      setError('Email ou senha incorretos')
+      setHasError(true)
     } finally {
       setLoading(false)
     }
   }
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    if (hasError) setHasError(false)
+    if (error) setError('')
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value)
+    if (hasError) setHasError(false)
+    if (error) setError('')
+  }
+
   return (
-    <Card className="w-full max-w-md mx-auto border-none shadow-2xl">
-      <CardHeader className="space-y-1">
+    <Card className="w-full max-w-md mx-auto border-none shadow-2xl backdrop-blur-sm bg-card/95">
+      <CardHeader className="space-y-3 pb-4">
+        <div className="flex items-center justify-center gap-2">
+          <div className="p-2 rounded-full bg-primary/10">
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+        </div>
         <CardTitle className="text-2xl font-bold text-center">Bem-vindo de volta</CardTitle>
         <CardDescription className="text-center">
           Entre com suas credenciais para acessar sua conta
         </CardDescription>
       </CardHeader>
+      <Separator className="mb-6" />
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive rounded-md">
-              <p className="text-sm text-destructive">{error}</p>
+            <div className="p-4 bg-destructive/10 border-l-4 border-destructive rounded-md animate-in slide-in-from-top-2">
+              <p className="text-sm text-destructive font-medium">{error}</p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">E-mail</Label>
+            <Label htmlFor="email" className="text-base font-semibold flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              E-mail
+            </Label>
             <Input
               id="email"
               type="email"
               placeholder="seu@email.com"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              style={hasError ? { borderColor: 'hsl(var(--destructive))', borderWidth: '2px' } : {}}
+              className="h-12 text-base"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password" className="text-base font-semibold flex items-center gap-2">
+              <LockIcon className="h-4 w-4" />
+              Senha
+            </Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
+                style={hasError ? { borderColor: 'hsl(var(--destructive))', borderWidth: '2px' } : {}}
+                className="pr-12 h-12 text-base"
                 required
-                className="pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-accent"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {hasError && error && (
+              <p className="text-sm text-destructive font-medium mt-1 animate-in slide-in-from-top-1">
+                {error}
+              </p>
+            )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+            disabled={loading}
+            size="lg"
+          >
             {loading ? (
-              'Entrando...'
+              <>
+                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                Entrando...
+              </>
             ) : (
               <>
-                <LogIn className="mr-2 h-4 w-4" />
+                <LogIn className="mr-2 h-5 w-5" />
                 Entrar
               </>
             )}

@@ -1,18 +1,18 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Feed from '@/components/common/Feed'
+import PublicFeed from '@/components/common/PublicFeed'
 import ProfileMenu from '@/components/layout/ProfileMenu'
 import { Button } from '@/components/ui/button'
-import { Plus, Gamepad2, Globe } from 'lucide-react'
+import { Plus, Gamepad2, User } from 'lucide-react'
 
-interface UserPageClientProps {
+interface PublicPageClientProps {
   username: string
   userId: string
   isAuthenticated: boolean
 }
 
-export default function UserPageClient({ username, userId, isAuthenticated }: UserPageClientProps) {
+export default function PublicPageClient({ username, userId, isAuthenticated }: PublicPageClientProps) {
   const router = useRouter()
 
   return (
@@ -27,12 +27,12 @@ export default function UserPageClient({ username, userId, isAuthenticated }: Us
           </div>
           <div className="flex items-center gap-3">
             <Button
-              onClick={() => router.push('/public')}
+              onClick={() => router.push(`/user/${userId}`)}
               variant="outline"
               size="sm"
             >
-              <Globe className="h-4 w-4 mr-2" />
-              Comunidade
+              <User className="h-4 w-4 mr-2" />
+              Meus Posts
             </Button>
             <Button
               onClick={() => router.push(`/user/${userId}/novo-post`)}
@@ -48,7 +48,7 @@ export default function UserPageClient({ username, userId, isAuthenticated }: Us
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <Feed isAuthenticated={isAuthenticated} currentUsername={username} currentUserId={userId} />
+        <PublicFeed isAuthenticated={isAuthenticated} currentUsername={username} currentUserId={userId} />
       </main>
     </div>
   )
