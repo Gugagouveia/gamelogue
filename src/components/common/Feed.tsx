@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
-import { getPosts, deletePost } from '@/server/actions/posts'
+import { getPosts, deletePost, getPublicPosts } from '@/server/actions/posts'
 import type { PostWithUser } from '@/domain/entities/Post'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -26,9 +26,17 @@ interface FeedProps {
   isAuthenticated?: boolean
   currentUsername?: string
   currentUserId?: string
+  mode?: 'user' | 'public'
+  title?: string
 }
 
-export default function Feed({ isAuthenticated = false, currentUsername, currentUserId }: FeedProps) {
+export default function Feed({ 
+  isAuthenticated = false, 
+  currentUsername, 
+  currentUserId,
+  mode = 'user',
+  title
+}: FeedProps) {
   const [posts, setPosts] = useState<PostWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
@@ -39,10 +47,15 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
   const [selectedPost, setSelectedPost] = useState<PostWithUser | null>(null)
   const observerTarget = useRef<HTMLDivElement>(null)
 
+  const isPublicMode = mode === 'public'
+  const itemsPerPage = isPublicMode ? 12 : 10
+
   const loadMorePosts = useCallback(async () => {
     try {
       setLoading(true)
-      const result = await getPosts({ page, limit: 10 })
+      const result = isPublicMode 
+        ? await getPublicPosts({ page, limit: itemsPerPage })
+        : await getPosts({ page, limit: itemsPerPage })
 
       if (result.success && result.posts.length > 0) {
         if (page === 1) {
@@ -50,7 +63,7 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
         } else {
           setPosts(prev => [...prev, ...result.posts])
         }
-        setHasMore(result.posts.length >= 10)
+        setHasMore(result.posts.length >= itemsPerPage)
       } else {
         setHasMore(false)
       }
@@ -61,7 +74,7 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
     } finally {
       setLoading(false)
     }
-  }, [page])
+  }, [page, isPublicMode, itemsPerPage])
 
   // Infinite Scroll
   useEffect(() => {
@@ -117,7 +130,7 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
 
   if (loading && posts.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <FeedSkeletonGrid />
       </div>
     )
@@ -125,18 +138,19 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
 
   if (posts.length === 0 && !loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+      <div className="flex flex-col items-center justify-center min-h-[400px] px-4 text-center">
         <div className="text-muted-foreground space-y-2">
-          <p className="text-lg font-medium">Nenhum post ainda</p>
-          <p className="text-sm">Seja o primeiro a compartilhar! 🎮</p>
+          <p className="text-base sm:text-lg font-medium">Nenhum post ainda</p>
+          <p className="text-xs sm:text-sm">Seja o primeiro a compartilhar! 🎮</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+    <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      {title && <h1 className="text-xl font-bold mb-4">{title}</h1>}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
         {posts.map(post => (
           <Card
             key={post._id}
@@ -166,7 +180,7 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
                   </Avatar>
                   <div className="flex flex-col min-w-0 flex-1">
                     <p className="font-semibold text-xs truncate">
-                      {post.user?.username || post.userId || 'Anônimo'}
+                      {post.user?.username || post.userId || 'Usuário'}
                     </p>
                     {post.game && (
                       <p className="text-xs text-muted-foreground truncate">{post.game}</p>
@@ -174,19 +188,21 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
                   </div>
                 </div>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => { e.stopPropagation(); openDeleteDialog(post._id) }}
-                  disabled={deleting === post._id}
-                  className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 flex-shrink-0"
-                >
-                  {deleting === post._id ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-3 w-3" />
-                  )}
-                </Button>
+                {!isPublicMode && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => { e.stopPropagation(); openDeleteDialog(post._id) }}
+                    disabled={deleting === post._id}
+                    className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 flex-shrink-0"
+                  >
+                    {deleting === post._id ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3 w-3" />
+                    )}
+                  </Button>
+                )}
               </div>
 
               {/* Title */}
@@ -232,33 +248,37 @@ export default function Feed({ isAuthenticated = false, currentUsername, current
       <div ref={observerTarget} className="mt-12 flex justify-center">
         {loading && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
         {!hasMore && posts.length > 0 && (
-          <p className="text-muted-foreground">Fim dos posts 🎮</p>
+          <p className="text-muted-foreground">
+            {isPublicMode ? 'Fim dos posts públicos 🎮' : 'Fim dos posts 🎮'}
+          </p>
         )}
       </div>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-white">
-          <DialogHeader>
-            <DialogTitle>Deletar post?</DialogTitle>
-            <DialogDescription>
-              Esta ação não pode ser desfeita. O post será deletado permanentemente.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmDelete}
-              disabled={deleting !== null}
-            >
-              {deleting ? 'Deletando...' : 'Deletar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {!isPublicMode && (
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle>Deletar post?</DialogTitle>
+              <DialogDescription>
+                Esta ação não pode ser desfeita. O post será deletado permanentemente.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={deleting !== null}
+              >
+                {deleting ? 'Deletando...' : 'Deletar'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Post Modal */}
       {selectedPost && (

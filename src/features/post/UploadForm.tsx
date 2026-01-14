@@ -139,30 +139,30 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
   return (
     <TooltipProvider>
       <Card className="w-full max-w-2xl mx-auto border-none shadow-2xl backdrop-blur-sm bg-card/95">
-        <CardHeader className="space-y-1 pb-4">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Sparkles className="h-5 w-5 text-primary" />
+        <CardHeader className="space-y-1 pb-3 sm:pb-4">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
-            <div>
-              <CardTitle className="text-2xl">Novo Post</CardTitle>
-              <CardDescription>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-lg sm:text-2xl">Novo Post</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 Compartilhe suas melhores capturas de tela com a comunidade
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <Separator className="mb-6" />
+        <Separator className="mb-4 sm:mb-6" />
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {uploading && (
-                <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 animate-pulse" />
-                      Enviando seu momento épico...
+                <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 animate-pulse flex-shrink-0" />
+                      <span className="truncate">Enviando seu momento épico...</span>
                     </p>
-                    <span className="text-sm font-bold text-primary">{Math.round(uploadProgress)}%</span>
+                    <span className="text-xs sm:text-sm font-bold text-primary flex-shrink-0">{Math.round(uploadProgress)}%</span>
                   </div>
                   <Progress value={uploadProgress} className="h-2" />
                 </div>
@@ -170,13 +170,13 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
 
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label className="flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4" />
+                  <Label className="flex items-center gap-2 text-xs sm:text-sm font-semibold">
+                    <ImageIcon className="h-4 w-4 flex-shrink-0" />
                     Imagem
                   </Label>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help flex-shrink-0" />
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Envie sua melhor captura de tela. Formatos: PNG, JPG, GIF.</p>
@@ -190,7 +190,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                     alt="Preview" 
                     width={400} 
                     height={256} 
-                    className="w-full h-64 object-cover" 
+                    className="w-full h-48 sm:h-64 object-cover" 
                   />
                   <div 
                     className="absolute inset-0 bg-black/0 hover:bg-black/50 transition-all duration-300 flex items-center justify-center group"
@@ -209,29 +209,29 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
               ) : (
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-all duration-300 ${
+                  className={`border-2 border-dashed rounded-lg p-6 sm:p-12 text-center cursor-pointer transition-all duration-300 ${
                     isDragActive
                       ? 'border-primary bg-primary/10 scale-105'
                       : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/5'
                   }`}
                 >
                   <input {...getInputProps()} />
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-2 sm:gap-3">
                     {isDragActive ? (
-                      <Upload className="h-16 w-16 text-primary animate-bounce" />
+                      <Upload className="h-12 sm:h-16 w-12 sm:w-16 text-primary animate-bounce" />
                     ) : (
-                      <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                      <ImageIcon className="h-12 sm:h-16 w-12 sm:w-16 text-muted-foreground" />
                     )}
                     <div className="text-center">
-                      <p className="text-base font-semibold">
+                      <p className="text-sm sm:text-base font-semibold px-2">
                         {isDragActive
                           ? '✨ Solte a imagem aqui...'
                           : 'Arraste uma imagem ou clique para selecionar'}
                       </p>
-                      <p className="text-xs text-muted-foreground mt-2">PNG, JPG, GIF, WEBP até 10MB</p>
-                      <div className="mt-2 flex gap-2 justify-center">
-                        <Badge variant="secondary" className="text-xs">4K Support</Badge>
-                        <Badge variant="secondary" className="text-xs">HDR Ready</Badge>
+                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 sm:mt-2">PNG, JPG, GIF, WEBP até 10MB</p>
+                      <div className="mt-1.5 sm:mt-2 flex gap-1 sm:gap-2 justify-center flex-wrap">
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs py-0.5">4K Support</Badge>
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs py-0.5">HDR Ready</Badge>
                       </div>
                     </div>
                   </div>
@@ -239,11 +239,11 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
               )}
             </div>
 
-              <Separator className="my-4" />
+              <Separator className="my-3 sm:my-4" />
 
             <div className="space-y-2">
-              <Label htmlFor="title" className="text-base font-semibold flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
+              <Label htmlFor="title" className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                <Sparkles className="h-4 w-4 flex-shrink-0" />
                 Título *
               </Label>
               <Input
@@ -252,28 +252,28 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="Dê um título épico ao seu post..."
-                className="text-base h-12"
+                className="text-sm sm:text-base h-10 sm:h-12"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-base font-semibold">Descrição *</Label>
+              <Label htmlFor="description" className="text-sm sm:text-base font-semibold">Descrição *</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Conte a história por trás desse momento incrível... ✨"
-                rows={4}
-                className="resize-none text-base"
+                rows={3}
+                className="resize-none text-sm sm:text-base"
                 required
               />
               <p className="text-xs text-muted-foreground">{description.length}/500 caracteres</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="game" className="text-base font-semibold flex items-center gap-2">
-                <Gamepad2 className="h-4 w-4" />
+              <Label htmlFor="game" className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                <Gamepad2 className="h-4 w-4 flex-shrink-0" />
                 Jogo
               </Label>
               <Select 
@@ -286,7 +286,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                   }
                 }}
               >
-                <SelectTrigger className="h-12">
+                <SelectTrigger className="h-10 sm:h-12 text-sm">
                   <SelectValue placeholder="Selecione um jogo..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -295,6 +295,7 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                       key={i} 
                       value={g} 
                       disabled={i === 0}
+                      className="text-sm"
                     >
                       {g}
                     </SelectItem>
@@ -307,14 +308,14 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                   placeholder="Digite o nome do jogo..."
                   value={game}
                   onChange={e => setGame(e.target.value)}
-                  className="mt-2 h-12"
+                  className="mt-2 h-10 sm:h-12 text-sm"
                 />
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tags" className="text-base font-semibold flex items-center gap-2">
-                <Tags className="h-4 w-4" />
+              <Label htmlFor="tags" className="text-sm sm:text-base font-semibold flex items-center gap-2">
+                <Tags className="h-4 w-4 flex-shrink-0" />
                 Tags
               </Label>
               <Input
@@ -323,28 +324,28 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
                 value={tags}
                 onChange={e => setTags(e.target.value)}
                 placeholder="fps, rpg, clutch, pvp, boss-fight..."
-                className="h-12"
+                className="h-10 sm:h-12 text-sm"
               />
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
                 {tags.split(',').filter(t => t.trim()).map((tag, i) => (
-                  <Badge key={i} variant="secondary" className="text-xs">
+                  <Badge key={i} variant="secondary" className="text-[10px] sm:text-xs py-0.5">
                     #{tag.trim()}
                   </Badge>
                 ))}
               </div>
             </div>
 
-            <Separator className="my-4" />
+            <Separator className="my-3 sm:my-4" />
 
-            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border bg-card gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1">
                 {isPublic ? (
-                  <Globe className="h-5 w-5 text-primary" />
+                  <Globe className="h-5 w-5 text-primary flex-shrink-0" />
                 ) : (
-                  <Lock className="h-5 w-5 text-muted-foreground" />
+                  <Lock className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                 )}
-                <div>
-                  <Label htmlFor="isPublic" className="text-base font-semibold cursor-pointer">
+                <div className="flex-1">
+                  <Label htmlFor="isPublic" className="text-sm sm:text-base font-semibold cursor-pointer">
                     {isPublic ? 'Post Público' : 'Post Privado'}
                   </Label>
                   <p className="text-xs text-muted-foreground">
@@ -363,19 +364,21 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+              className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
               disabled={uploading || !selectedFile}
               size="lg"
             >
               {uploading ? (
                 <>
-                  <Sparkles className="mr-2 h-5 w-5 animate-spin" />
-                  Enviando...
+                  <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  <span className="hidden sm:inline">Enviando...</span>
+                  <span className="sm:hidden">Enviando</span>
                 </>
               ) : (
                 <>
-                  <Upload className="mr-2 h-5 w-5" />
-                  Publicar Post
+                  <Upload className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Publicar Post</span>
+                  <span className="sm:hidden">Publicar</span>
                 </>
               )}
             </Button>

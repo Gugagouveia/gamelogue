@@ -33,6 +33,12 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
   const [isPublic, setIsPublic] = useState(post.isPublic || false)
   const [updatingVisibility, setUpdatingVisibility] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  useEffect(() => {
+    setIsPublic(post.isPublic || false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post._id])
 
   useEffect(() => {
     if (post.comments && Array.isArray(post.comments)) {
@@ -48,7 +54,20 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
     } else {
       setComments([])
     }
-  }, [post._id, post])
+  }, [post.comments, post._id])
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+    
+    checkDarkMode()
+    
+    const observer = new MutationObserver(checkDarkMode)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    
+    return () => observer.disconnect()
+  }, [])
 
   const aspectRatio = imageDimensions ? imageDimensions.width / imageDimensions.height : 1
   const isPortrait = aspectRatio < 0.8
@@ -134,13 +153,15 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
     }
 
     setUpdatingVisibility(true)
+    const newVisibility = !isPublic
     try {
-      const result = await updatePostVisibility(post._id, !isPublic)
+      const result = await updatePostVisibility(post._id, newVisibility)
 
       if (result.success) {
-        setIsPublic(!isPublic)
+        setIsPublic(newVisibility)
+        post.isPublic = newVisibility
         toast.success(
-          !isPublic
+          newVisibility
             ? 'Post marcado como público ✨'
             : 'Post marcado como privado 🔒'
         )
@@ -194,17 +215,17 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
     <TooltipProvider>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className={`max-h-[95vh] sm:max-h-[90vh] p-0 overflow-hidden border-2 w-[95vw] sm:w-auto post-modal-content ${
-          isPortrait ? 'sm:max-w-2xl md:max-w-3xl' : 
-          isLandscape ? 'sm:max-w-5xl md:max-w-6xl lg:max-w-7xl' : 
-          'sm:max-w-3xl md:max-w-4xl lg:max-w-5xl'
+        className={`max-h-[95vh] sm:max-h-[90vh] p-0 overflow-hidden border-0 shadow-none w-[98vw] sm:w-[95vw] md:w-auto post-modal-content ${
+          isPortrait ? 'sm:max-w-lg md:max-w-2xl lg:max-w-3xl' : 
+          isLandscape ? 'sm:max-w-4xl md:max-w-5xl lg:max-w-6xl' : 
+          'sm:max-w-2xl md:max-w-3xl lg:max-w-4xl'
         }`}
       >
         <div className="flex flex-col md:flex-row h-full max-h-[95vh] sm:max-h-[90vh]">
           <div className={`hidden md:flex items-center justify-center relative overflow-hidden ${
-            isPortrait ? 'md:w-auto md:max-w-[400px] lg:max-w-[500px]' : 
+            isPortrait ? 'md:w-auto md:max-w-[300px] lg:max-w-[400px]' : 
             isLandscape ? 'md:flex-1 md:min-w-0' : 
-            'md:w-auto md:max-w-[500px] lg:max-w-[650px]'
+            'md:w-auto md:max-w-[400px] lg:max-w-[550px]'
           }`}>
             <div className="relative w-full h-full flex items-center justify-center group">
               <Image
@@ -220,29 +241,23 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
                 priority
                 onLoad={handleImageLoad}
               />
-              {imageDimensions && (
-                <Badge className="absolute bottom-4 right-4 bg-black/70 text-white hover:bg-black/80">
-                  <Eye className="h-3 w-3 mr-1" />
-                  {imageDimensions.width} × {imageDimensions.height}
-                </Badge>
-              )}
             </div>
           </div>
 
-          <div className="w-full md:w-80 lg:w-96 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
-            <div className="border-b p-3 sm:p-4 flex items-center justify-between flex-shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 ring-2 ring-primary/20">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-xs sm:text-sm font-bold">
+          <div className="w-full md:w-72 lg:w-96 flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+            <div className="border-b p-2 sm:p-3 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
+                <Avatar className="h-7 w-7 sm:h-9 sm:w-9 flex-shrink-0 ring-2 ring-primary/20">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-[10px] sm:text-xs font-bold">
                     {post.user?.username?.[0]?.toUpperCase() || '?'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col min-w-0 flex-1">
-                  <p className="font-bold text-xs sm:text-sm truncate">
+                  <p className="font-bold text-xs truncate">
                     {post.user?.username || 'Anônimo'}
                   </p>
                   {post.game && (
-                    <Badge variant="secondary" className="text-[10px] w-fit mt-0.5">
+                    <Badge variant="secondary" className="text-[9px] w-fit mt-0.5">
                       {post.game}
                     </Badge>
                   )}
@@ -262,7 +277,7 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
             </div>
 
             <div className="md:hidden relative w-full flex-shrink-0">
-              <div className="relative w-full max-h-[50vh] group" style={{ aspectRatio: aspectRatio || 1 }}>
+              <div className="relative w-full max-h-[40vh] sm:max-h-[50vh] group" style={{ aspectRatio: aspectRatio || 1 }}>
                 <Image
                   src={post.imageUrl}
                   alt={post.title || 'Post'}
@@ -271,23 +286,18 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
                   priority
                   onLoad={handleImageLoad}
                 />
-                {imageDimensions && (
-                  <Badge className="absolute bottom-2 right-2 bg-black/70 text-white text-xs">
-                    {imageDimensions.width} × {imageDimensions.height}
-                  </Badge>
-                )}
               </div>
             </div>
 
-            <div className="border-b p-3 sm:p-4 flex-shrink-0 overflow-y-auto max-h-[20vh] sm:max-h-none">
+            <div className="border-b p-2 sm:p-3 flex-shrink-0 overflow-y-auto max-h-[15vh] sm:max-h-none">
               {post.title && (
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <h3 className="font-bold text-sm sm:text-base flex-1">{post.title}</h3>
+                <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                  <h3 className="font-bold text-xs sm:text-sm flex-1">{post.title}</h3>
                 </div>
               )}
               {post.description && (
-                <p className="text-xs sm:text-sm text-muted-foreground mb-3 leading-relaxed">
+                <p className="text-[11px] sm:text-sm text-muted-foreground mb-2 sm:mb-3 leading-relaxed">
                   {post.description}
                 </p>
               )}
@@ -392,34 +402,19 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button
+                      <Button
                         onClick={(e) => { e.stopPropagation(); handleToggleVisibility() }}
                         disabled={updatingVisibility}
-                        style={{
-                          backgroundColor: isPublic ? '#22c55e' : '#6b7280',
-                          color: '#ffffff',
-                          border: 'none',
-                          padding: '0.5rem',
-                          borderRadius: '0.375rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          height: '2rem',
-                          width: '2.5rem',
-                          flexShrink: '0',
-                          transition: 'opacity 0.2s',
-                          cursor: updatingVisibility ? 'not-allowed' : 'pointer',
-                          opacity: updatingVisibility ? '0.5' : '1'
-                        }}
-                        onMouseEnter={(e) => !updatingVisibility && (e.currentTarget.style.opacity = '0.8')}
-                        onMouseLeave={(e) => !updatingVisibility && (e.currentTarget.style.opacity = '1')}
+                        variant={isPublic ? 'default' : 'secondary'}
+                        size="icon"
+                        className="h-8 w-10 flex-shrink-0 shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       >
                         {isPublic ? (
-                          <Globe style={{ height: '1rem', width: '1rem' }} />
+                          <Globe className="h-4 w-4" style={{ stroke: isDarkMode ? 'white' : 'black', filter: 'none' }} />
                         ) : (
-                          <Lock style={{ height: '1rem', width: '1rem' }} />
+                          <Lock className="h-4 w-4" style={{ stroke: isDarkMode ? 'white' : 'black', filter: 'none' }} />
                         )}
-                      </button>
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>{isPublic ? 'Post público - clique para tornar privado' : 'Post privado - clique para tornar público'}</p>

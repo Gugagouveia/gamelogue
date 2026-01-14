@@ -56,29 +56,29 @@ export default function LoginForm() {
 
   return (
     <Card className="w-full max-w-md mx-auto border-none shadow-2xl backdrop-blur-sm bg-card/95">
-      <CardHeader className="space-y-3 pb-4">
+      <CardHeader className="space-y-3 pb-3 sm:pb-4">
         <div className="flex items-center justify-center gap-2">
           <div className="p-2 rounded-full bg-primary/10">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold text-center">Bem-vindo de volta</CardTitle>
-        <CardDescription className="text-center">
+        <CardTitle className="text-xl sm:text-2xl font-bold text-center">Bem-vindo de volta</CardTitle>
+        <CardDescription className="text-center text-xs sm:text-sm">
           Entre com suas credenciais para acessar sua conta
         </CardDescription>
       </CardHeader>
-      <Separator className="mb-6" />
+      <Separator className="mb-4 sm:mb-6" />
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {error && (
-            <div className="p-4 bg-destructive/10 border-l-4 border-destructive rounded-md animate-in slide-in-from-top-2">
-              <p className="text-sm text-destructive font-medium">{error}</p>
+            <div className="p-3 sm:p-4 bg-destructive/10 border-l-4 border-destructive rounded-md animate-in slide-in-from-top-2">
+              <p className="text-xs sm:text-sm text-destructive font-medium">{error}</p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-base font-semibold flex items-center gap-2">
-              <Mail className="h-4 w-4" />
+            <Label htmlFor="email" className="text-sm sm:text-base font-semibold flex items-center gap-2">
+              <Mail className="h-4 w-4 flex-shrink-0" />
               E-mail
             </Label>
             <Input
@@ -88,14 +88,14 @@ export default function LoginForm() {
               value={email}
               onChange={handleEmailChange}
               style={hasError ? { borderColor: 'hsl(var(--destructive))', borderWidth: '2px' } : {}}
-              className="h-12 text-base"
+              className="h-10 sm:h-12 text-sm"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-base font-semibold flex items-center gap-2">
-              <LockIcon className="h-4 w-4" />
+            <Label htmlFor="password" className="text-sm sm:text-base font-semibold flex items-center gap-2">
+              <LockIcon className="h-4 w-4 flex-shrink-0" />
               Senha
             </Label>
             <div className="relative">
@@ -106,19 +106,21 @@ export default function LoginForm() {
                 value={password}
                 onChange={handlePasswordChange}
                 style={hasError ? { borderColor: 'hsl(var(--destructive))', borderWidth: '2px' } : {}}
-                className="pr-12 h-12 text-base"
+                className="pr-10 h-10 sm:h-12 text-sm"
                 required
               />
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-accent"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-accent"
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
+                {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
+              </Button>
             </div>
             {hasError && error && (
-              <p className="text-sm text-destructive font-medium mt-1 animate-in slide-in-from-top-1">
+              <p className="text-xs sm:text-sm text-destructive font-medium mt-1 animate-in slide-in-from-top-1">
                 {error}
               </p>
             )}
@@ -126,18 +128,19 @@ export default function LoginForm() {
 
           <Button 
             type="submit" 
-            className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
+            className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl transition-all" 
             disabled={loading}
             size="lg"
           >
             {loading ? (
               <>
-                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
-                Entrando...
+                <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                <span className="hidden sm:inline">Entrando...</span>
+                <span className="sm:hidden">Entrando</span>
               </>
             ) : (
               <>
-                <LogIn className="mr-2 h-5 w-5" />
+                <LogIn className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Entrar
               </>
             )}
