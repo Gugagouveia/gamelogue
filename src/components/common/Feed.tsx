@@ -104,6 +104,30 @@ export default function Feed({
     setDeleteDialogOpen(true)
   }
 
+  const handlePostUpdate = (postId: string, updates: { likesCount?: number; commentsCount?: number; likes?: string[] }) => {
+    setPosts(prev => prev.map(p => {
+      if (p._id === postId) {
+        return {
+          ...p,
+          likesCount: updates.likesCount ?? p.likesCount,
+          commentsCount: updates.commentsCount ?? p.commentsCount,
+          likes: updates.likes ?? p.likes
+        }
+      }
+      return p
+    }))
+    
+    // Atualiza também o selectedPost se for o mesmo
+    if (selectedPost && selectedPost._id === postId) {
+      setSelectedPost(prev => prev ? {
+        ...prev,
+        likesCount: updates.likesCount ?? prev.likesCount,
+        commentsCount: updates.commentsCount ?? prev.commentsCount,
+        likes: updates.likes ?? prev.likes
+      } : null)
+    }
+  }
+
   const handleConfirmDelete = async () => {
     if (!postToDelete) return
 
@@ -238,6 +262,9 @@ export default function Feed({
                 initialLikes={post.likesCount}
                 initialComments={post.commentsCount}
                 isAuthenticated={isAuthenticated}
+                currentUserId={currentUserId}
+                userLikes={post.likes}
+                onPostUpdate={handlePostUpdate}
               />
             </CardFooter>
           </Card>
@@ -289,6 +316,7 @@ export default function Feed({
           isAuthenticated={isAuthenticated}
           isOwner={isAuthenticated && currentUsername === selectedPost.userId}
           currentUserId={currentUserId}
+          onPostUpdate={handlePostUpdate}
         />
       )}
     </div>

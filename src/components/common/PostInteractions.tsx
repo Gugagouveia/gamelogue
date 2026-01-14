@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { toggleLike, addComment } from '@/server/actions/posts'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,9 @@ interface PostInteractionsProps {
   initialLikes: number
   initialComments: number
   isAuthenticated: boolean
+  currentUserId?: string
+  userLikes?: string[]
+  onPostUpdate?: (postId: string, updates: { likesCount?: number; commentsCount?: number; likes?: string[] }) => void
 }
 
 export function PostInteractions({
@@ -26,14 +29,37 @@ export function PostInteractions({
   initialLikes,
   initialComments,
   isAuthenticated,
+  currentUserId,
+  userLikes,
+  onPostUpdate,
 }: PostInteractionsProps) {
+  const lastPostIdRef = useRef(postId)
   const [likes, setLikes] = useState(initialLikes)
-  const [isLiked, setIsLiked] = useState(false)
+  const [isLiked, setIsLiked] = useState(() => {
+    return currentUserId ? (userLikes?.includes(currentUserId) ?? false) : false
+  })
   const [liking, setLiking] = useState(false)
   const [comments, setComments] = useState<Array<{ userId: string; text: string; createdAt: string }>>([])
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [posting, setPosting] = useState(false)
+
+  useEffect(() => {
+    // Atualiza quando o post mudar OU quando os likes/count mudarem de fora (via onPostUpdate)
+    const newIsLiked = currentUserId ? (userLikes?.includes(currentUserId) ?? false) : false
+    const newLikesCount = initialLikes
+    
+    if (postId !== lastPostIdRef.current) {
+      // Post diferente - sempre atualiza
+      lastPostIdRef.current = postId
+      setIsLiked(newIsLiked)
+      setLikes(newLikesCount)
+    } else {
+      // Mesmo post - só atualiza se os valores realmente mudaram (sincronização externa)
+      setIsLiked(newIsLiked)
+      setLikes(newLikesCount)
+    }
+  }, [postId, userLikes, currentUserId, initialLikes])
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -47,12 +73,16 @@ export function PostInteractions({
 
       if (result.success && 'liked' in result) {
         if (result.liked) {
+          const newLikes = [...(userLikes || []), currentUserId || '']
           setLikes(prev => prev + 1)
           setIsLiked(true)
+          onPostUpdate?.(postId, { likesCount: likes + 1, likes: newLikes })
           toast.success('Post curtido!')
         } else {
+          const newLikes = (userLikes || []).filter(id => id !== currentUserId)
           setLikes(prev => Math.max(0, prev - 1))
           setIsLiked(false)
+          onPostUpdate?.(postId, { likesCount: Math.max(0, likes - 1), likes: newLikes })
           toast.success('Like removido')
         }
       } else {
@@ -98,25 +128,38 @@ export function PostInteractions({
 
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button
-          variant="ghost"
           size="sm"
-          onClick={handleLike}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleLike()
+          }}
           disabled={liking}
-          className={isLiked ? 'text-red-500' : ''}
+          style={isLiked ? { backgroundColor: '#ef4444', color: 'white' } : undefined}
+          className={`flex items-center gap-1.5 font-semibold transition-all text-xs h-8 ${
+            isLiked
+              ? 'hover:opacity-90'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+          }`}
         >
-          <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-          <span className="text-xs">{likes}</span>
+          <Heart
+            className={`h-4 w-4 transition-all ${
+              isLiked ? 'scale-110' : ''
+            }`}
+            fill={isLiked ? 'white' : 'none'}
+            stroke={isLiked ? 'white' : 'currentColor'}
+          />
+          <span className="text-[10px] font-bold">{likes}</span>
         </Button>
 
         <Button
-          variant="ghost"
           size="sm"
-          onClick={() => setCommentsOpen(true)}
+          disabled
+          className="flex items-center gap-1.5 bg-secondary text-secondary-foreground text-xs h-8"
         >
-          <MessageCircle className="h-4 w-4 mr-1" />
-          <span className="text-xs">{initialComments}</span>
+          <MessageCircle className="h-4 w-4" />
+          <span className="text-[10px]">{initialComments}</span>
         </Button>
       </div>
 

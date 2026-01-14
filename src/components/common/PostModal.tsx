@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -21,10 +21,14 @@ interface PostModalProps {
   isAuthenticated: boolean
   isOwner?: boolean
   currentUserId?: string
+  onPostUpdate?: (postId: string, updates: { likesCount?: number; commentsCount?: number; likes?: string[] }) => void
 }
 
-export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = false, currentUserId }: PostModalProps) {
-  const [isLiked, setIsLiked] = useState(false)
+export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = false, currentUserId, onPostUpdate }: PostModalProps) {
+  const lastPostIdRef = useRef(post._id)
+  const [isLiked, setIsLiked] = useState(() => {
+    return currentUserId ? (post.likes?.includes(currentUserId) ?? false) : false
+  })
   const [likes, setLikes] = useState(post.likesCount)
   const [comments, setComments] = useState<Array<{ userId: string; username?: string; text: string; createdAt: string }>>([])
   const [commentText, setCommentText] = useState('')
@@ -37,8 +41,14 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
 
   useEffect(() => {
     setIsPublic(post.isPublic || false)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [post._id])
+
+  useEffect(() => {
+    const newIsLiked = currentUserId ? post.likes?.includes(currentUserId) ?? false : false
+    setIsLiked(newIsLiked)
+    setLikes(post.likesCount)
+    lastPostIdRef.current = post._id
+  }, [post._id, post.likes, post.likesCount, currentUserId])
 
   useEffect(() => {
     if (post.comments && Array.isArray(post.comments)) {
@@ -89,15 +99,10 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
       const result = await toggleLike(post._id)
 
       if (result.success && 'liked' in result) {
-        if (result.liked) {
-          setLikes(prev => prev + 1)
-          setIsLiked(true)
-          toast.success('Post curtido!')
-        } else {
-          setLikes(prev => Math.max(0, prev - 1))
-          setIsLiked(false)
-          toast.success('Like removido')
-        }
+        const newLikesCount = result.liked ? likes + 1 : Math.max(0, likes - 1)
+        setLikes(newLikesCount)
+        setIsLiked(result.liked)
+        onPostUpdate?.(post._id, { likesCount: newLikesCount })
       } else {
         toast.error(result.message || 'Erro ao dar like')
       }
@@ -125,14 +130,13 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
       const result = await addComment(post._id, commentText)
 
       if (result.success) {
-        setComments(prev => [
-          ...prev,
-          {
-            userId: '',
-            text: commentText,
-            createdAt: new Date().toISOString(),
-          },
-        ])
+        const newComment = {
+          userId: currentUserId || '',
+          text: commentText,
+          createdAt: new Date().toISOString(),
+        }
+        setComments(prev => [...prev, newComment])
+        onPostUpdate?.(post._id, { commentsCount: comments.length + 1 })
         setCommentText('')
         toast.success('Comentário adicionado!')
       } else {
@@ -379,12 +383,15 @@ export function PostModal({ post, isOpen, onClose, isAuthenticated, isOwner = fa
                         disabled={liking}
                         className={`flex items-center gap-1.5 sm:gap-2 font-semibold transition-all text-xs sm:text-sm h-8 sm:h-9 ${
                           isLiked
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            ? 'bg-red-500 text-white hover:bg-red-600'
                             : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                         }`}
                       >
                         <Heart
-                          className={`h-4 w-4 sm:h-5 sm:w-5 transition-all ${isLiked ? 'fill-current scale-110' : ''}`}
+                          className={`h-4 w-4 sm:h-5 sm:w-5 transition-all ${
+                            isLiked ? 'scale-110 fill-current' : ''
+                          }`}
+                          stroke="currentColor"
                         />
                         <span className="text-[10px] sm:text-xs font-bold">{likes}</span>
                       </Button>
