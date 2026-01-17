@@ -28,8 +28,9 @@ export async function register(input: CreateUserInput) {
       const cookieStore = await cookies()
       cookieStore.set('auth-token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // HTTP (EC2 sem HTTPS)
         sameSite: 'lax',
+        path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 dias
       })
 
@@ -69,8 +70,9 @@ export async function login(input: LoginInput) {
       const cookieStore = await cookies()
       cookieStore.set('auth-token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // HTTP (EC2 sem HTTPS)
         sameSite: 'lax',
+        path: '/',
         maxAge: 60 * 60 * 24 * 7, // 7 dias
       })
 
